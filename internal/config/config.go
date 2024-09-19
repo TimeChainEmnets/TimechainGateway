@@ -3,12 +3,24 @@ package config
 import (
 	"encoding/json"
 	"os"
+	"path/filepath"
 )
 
 type Config struct {
+	Server           ServerConfig     `json:"server_config"`
+	MQTT             MQTTConfig       `json:"mqtt_config"`
 	DeviceConfig     DeviceConfig     `json:"device_config"`
 	BlockchainConfig BlockchainConfig `json:"blockchain_config"`
 	StorageConfig    StorageConfig    `json:"storage_config"`
+}
+
+type ServerConfig struct {
+	Port int `json:"port"`
+}
+
+type MQTTConfig struct {
+	Address         string `json:"address"`
+	DeviceInfoTopic string `json:"device_info_topic"`
 }
 
 type DeviceConfig struct {
@@ -16,19 +28,26 @@ type DeviceConfig struct {
 }
 
 type BlockchainConfig struct {
-	NodeURL    string `json:"node_url"`
-	ChainID    string `json:"chain_id"`
-	GasLimit   uint64 `json:"gas_limit"`
-	GasPrice   string `json:"gas_price"`
-	WalletSeed string `json:"wallet_seed"`
+	NodeURL         string `json:"node_url"`
+	ChainID         string `json:"chain_id"`
+	GasLimit        uint64 `json:"gas_limit"`
+	ContractAddress string `json:"contract_address"`
 }
 
 type StorageConfig struct {
-	DataDir string `json:"data_dir"` // 本地数据存储目录
+	DataDir string `json:"storage_dir"` // 本地数据存储目录
 }
 
 func Load() (*Config, error) {
-	file, err := os.Open("config.json")
+	// 获取当前工作目录
+	currentDir, err := os.Getwd()
+	if err != nil {
+		return nil, err
+	}
+	// 构造配置文件的相对路径
+	configPath := filepath.Join(currentDir, "config.json")
+
+	file, err := os.Open(configPath)
 	if err != nil {
 		return nil, err
 	}
