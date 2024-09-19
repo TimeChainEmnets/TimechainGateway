@@ -2,7 +2,6 @@ package device
 
 import (
 	mqtt "github.com/mochi-mqtt/server/v2"
-	"github.com/mochi-mqtt/server/v2/packets"
 	"log"
 	"sync"
 	"timechain-gateway/internal/config"
@@ -22,28 +21,7 @@ func NewManager(cfg *config.Config, server *mqtt.Server) *Manager {
 		cfg:     cfg,
 		server:  server,
 	}
-	m.setupServerHooks()
 	return m
-}
-
-func (m *Manager) setupServerHooks() {
-	m.server.Events.OnConnect = func(cl *mqtt.Client, pk packets.Packet) {
-		m.AddDevice(cl.ID, "unknown") // 类型初始设为 unknown
-		log.Printf("New device connected: %s", cl.ID)
-	}
-
-	m.server.Events.OnDisconnect = func(cl *mqtt.Client, err error) {
-		m.RemoveDevice(cl.ID)
-		log.Printf("Device disconnected: %s", cl.ID)
-	}
-
-	m.server.Events.OnMessage = func(cl *mqtt.Client, pk packets.Packet) {
-		// 处理设备发送的消息，可能包含设备类型信息
-		if pk.TopicName == m.cfg.MQTT.DeviceInfoTopic {
-			// 假设消息内容是设备类型
-			m.UpdateDeviceType(cl.ID, string(pk.Payload))
-		}
-	}
 }
 
 func (m *Manager) GetDevices() []models.Device {
