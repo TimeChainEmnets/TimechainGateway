@@ -38,14 +38,14 @@ type StorageConfig struct {
 	DataDir string `json:"storage_dir"` // 本地数据存储目录
 }
 
-func Load() (*Config, error) {
+func Load(fileName string) (*Config, error) {
 	// 获取当前工作目录
 	currentDir, err := os.Getwd()
 	if err != nil {
 		return nil, err
 	}
 	// 构造配置文件的相对路径
-	configPath := filepath.Join(currentDir, "config.json")
+	configPath := filepath.Join(currentDir, fileName)
 
 	file, err := os.Open(configPath)
 	if err != nil {

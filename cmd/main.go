@@ -16,7 +16,7 @@ import (
 )
 
 func main() {
-	cfg, err := config.Load()
+	cfg, err := config.Load("config.json")
 	if err != nil {
 		log.Fatalf("Failed to load config: %v", err)
 	}
@@ -78,7 +78,7 @@ func main() {
 	// 收到中断信号后关闭服务器
 	server.Close()
 
-	// gateway.Stop() // 假设您有一个 Stop 方法来清理 Gateway
+	gateway.Stop() // 假设您有一个 Stop 方法来清理 Gateway
 	// 等待所有 goroutine 完成
 	wg.Wait()
 	log.Println("Shutdown complete")
@@ -106,4 +106,8 @@ func (g *Gateway) Start() {
 		processedData := g.dataProcessor.Process(rawData)
 		g.blockchainClient.SendData(processedData)
 	}
+}
+
+func (g *Gateway) Stop() {
+
 }
