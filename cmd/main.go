@@ -1,9 +1,7 @@
 package main
 
 import (
-	mqtt "github.com/mochi-mqtt/server/v2"
-	"github.com/mochi-mqtt/server/v2/hooks/auth"
-	"github.com/mochi-mqtt/server/v2/listeners"
+	"bytes"
 	"log"
 	"os"
 	"os/signal"
@@ -12,7 +10,11 @@ import (
 	"timechain-gateway/internal/blockchain"
 	"timechain-gateway/internal/config"
 	"timechain-gateway/internal/data"
-	"timechain-gateway/internal/device"
+
+	mqtt "github.com/mochi-mqtt/server/v2"
+	"github.com/mochi-mqtt/server/v2/hooks/auth"
+	"github.com/mochi-mqtt/server/v2/listeners"
+	"github.com/mochi-mqtt/server/v2/packets"
 )
 
 func main() {
@@ -25,18 +27,21 @@ func main() {
 	server := mqtt.New(nil)
 
 	// 添加认证钩子（如果需要）
-	err = server.AddHook(new(auth.AllowHook), nil)
-	if err != nil {
+	if err = server.AddHook(new(auth.AllowHook), nil); err != nil {
 		log.Fatalf("Failed to add auth hook: %v", err)
+	}
+	// Add connection hook before starting server
+	if err := server.AddHook(new(ConnectionEstablishedHook), nil); err != nil {
+		log.Fatalf("Failed to add connection hook: %v", err)
 	}
 	// 设置 TCP 监听器
 	tcpConfig := listeners.Config{
 		ID:      "t1",
 		Address: cfg.MQTT.Address,
 	}
+
 	tcp := listeners.NewTCP(tcpConfig)
-	err = server.AddListener(tcp)
-	if err != nil {
+	if err = server.AddListener(tcp); err != nil {
 		log.Fatalf("Failed to add TCP listener: %v", err)
 	}
 
@@ -44,21 +49,28 @@ func main() {
 	var wg sync.WaitGroup
 	// 启动 MQTT 服务器
 	wg.Add(1)
+
 	// 启动服务器
 	go func() {
 		defer wg.Done()
-		err := server.Serve()
-		if err != nil {
+		if err := server.Serve(); err != nil {
 			log.Fatalf("Failed to start MQTT server: %v", err)
 		}
 	}()
 
-	deviceManager := device.NewManager(cfg, server)
-	dataCollector := data.NewCollector(deviceManager)
+	dataCollector := data.NewCollector()
 	dataProcessor := data.NewProcessor(cfg)
 	blockchainClient := blockchain.NewClient(cfg)
 
 	gateway := NewGateway(cfg, dataCollector, dataProcessor, blockchainClient)
+
+	// 添加消息处理钩子
+	messageHook := &MessageHook{
+		collector: dataCollector,
+	}
+	if err := server.AddHook(messageHook, nil); err != nil {
+		log.Fatalf("Failed to add message hook: %v", err)
+	}
 
 	// 启动 Gateway
 	wg.Add(1)
@@ -102,12 +114,54 @@ func NewGateway(cfg *config.Config, collector *data.Collector, processor *data.P
 
 func (g *Gateway) Start() {
 	for {
-		rawData := g.dataCollector.Collect()
-		processedData := g.dataProcessor.Process(rawData)
+		g.dataCollector.StartCollecting()
+		processedData := g.dataProcessor.Process()
 		g.blockchainClient.SendData(processedData)
 	}
 }
 
 func (g *Gateway) Stop() {
 
+}
+
+// ConnectionEstablishedHook 是一个钩子，当客户端连接到服务器时调用
+type ConnectionEstablishedHook struct {
+	mqtt.HookBase
+}
+
+// Init initializes the hook
+func (h *ConnectionEstablishedHook) Init(config interface{}) error {
+	return nil
+}
+
+// Provides indicates which hook methods this hook provides
+func (h *ConnectionEstablishedHook) Provides(b byte) bool {
+	return b == mqtt.OnConnect
+}
+
+// OnConnect is called when a client connects to the server
+func (h *ConnectionEstablishedHook) OnConnect(cl *mqtt.Client, pk packets.Packet) error {
+	log.Printf("Client connected: %s", cl.ID)
+	return nil
+}
+
+type MessageHook struct {
+	mqtt.HookBase
+	collector *data.Collector
+}
+
+func (h *MessageHook) Provides(b byte) bool {
+	return bytes.Contains([]byte{
+		mqtt.OnConnect,
+		mqtt.OnPublish,
+	}, []byte{b})
+}
+
+func (h *MessageHook) OnConnect(cl *mqtt.Client, pk packets.Packet) error {
+	log.Printf("Client connected: %s", cl.ID)
+	return nil
+}
+
+func (h *MessageHook) OnPublish(cl *mqtt.Client, pk packets.Packet) (packets.Packet, error) {
+	return pk, h.collector.HandleMQTTMessage(pk.TopicName, pk.Payload)
 }

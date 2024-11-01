@@ -11,9 +11,11 @@ type Device struct {
 }
 
 type RawData struct {
-	DeviceID  string
-	Timestamp int64
-	Value     float64
+	DeviceID  string  `json:"device_id"`
+	Timestamp int64   `json:"timestamp"`
+	Type      string  `json:"type"`
+	Value     float64 `json:"value"`
+	Unit      string  `json:"unit"`
 }
 
 type ProcessedData struct {
