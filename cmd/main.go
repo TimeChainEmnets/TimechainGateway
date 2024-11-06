@@ -113,15 +113,25 @@ func NewGateway(cfg *config.Config, collector *data.Collector, processor *data.P
 }
 
 func (g *Gateway) Start() {
-	for {
-		g.dataCollector.StartCollecting()
-		processedData := g.dataProcessor.Process()
-		g.blockchainClient.SendData(processedData)
-	}
+    // 启动collector
+    g.dataCollector.StartCollecting()
+
+    // 启动处理循环
+    go func() {
+        processChan := g.dataCollector.GetProcessedChannel()
+        for batch := range processChan {
+            // 处理数据
+			processedData := g.dataProcessor.ProcessBatch(batch)
+            // 发送到区块链
+            if err := g.blockchainClient.SendData(processedData); err != nil {
+                log.Printf("Error sending data to blockchain: %v", err)
+            }
+        }
+    }()
 }
 
 func (g *Gateway) Stop() {
-
+	g.dataCollector.Stop()
 }
 
 // ConnectionEstablishedHook 是一个钩子，当客户端连接到服务器时调用

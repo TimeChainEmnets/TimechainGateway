@@ -4,7 +4,7 @@
   },
   "mqtt_config": {
     "address": ":1883",
-    "device_info_topic": "devices/info"
+    "device_info_topic": "sensors/data"
   },
   "device_config": {
     "scan_interval": 15
