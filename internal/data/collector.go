@@ -6,25 +6,30 @@ import (
 	"log"
 	"sync"
 	"time"
+	"timechain-gateway/internal/config"
 	"timechain-gateway/pkg/models"
 )
 
 type Collector struct {
-	dataChan      chan models.SensorData
-	processedChan chan []models.SensorData // 新增：用于发送给processor的channel
-	batchSize     int
-	interval      time.Duration
-	mutex         sync.RWMutex
-	stopChan      chan struct{}
+	config          *config.Config
+	dataChan        chan models.SensorData
+	processedChan   chan []models.SensorData // 新增：用于发送给processor的channel
+	BatchSize       int
+	BigBatchSize    int
+	processInterval time.Duration
+	mutex           sync.RWMutex
+	stopChan        chan struct{}
 }
 
-func NewCollector() *Collector {
+func NewCollector(cfg *config.Config) *Collector {
 	return &Collector{
-		dataChan:      make(chan models.SensorData, 100),
-		processedChan: make(chan []models.SensorData, 10),
-		batchSize:     100,
-		interval:      time.Second * 30,
-		stopChan:      make(chan struct{}),
+		config:          cfg,
+		dataChan:        make(chan models.SensorData, cfg.DeviceConfig.ProcessInterval/cfg.DeviceConfig.ScanInterval),
+		processedChan:   make(chan []models.SensorData, 10),
+		BatchSize:       20,
+		BigBatchSize:    cfg.DeviceConfig.DeviceNumber * cfg.DeviceConfig.ProcessInterval / cfg.DeviceConfig.ScanInterval,
+		processInterval: time.Second * time.Duration(cfg.DeviceConfig.ProcessInterval),
+		stopChan:        make(chan struct{}),
 	}
 }
 
@@ -49,27 +54,28 @@ func (c *Collector) HandleMQTTMessage(topic string, payload []byte) error {
 func (c *Collector) StartCollecting() {
 	go func() {
 		// 收集满 batch size个数据后，发送给processBatch处理
-		// batch size暂定100，10个设备，每个设备10个数据
-		batch := make([]models.SensorData, 0, c.batchSize)
-		ticker := time.NewTicker(c.interval) // 定时刷新
+		// batch size 暂定20个
+		BigBatch := make([]models.SensorData, 0, c.BigBatchSize)
+		ticker := time.NewTicker(c.processInterval)
+		// 若未填满数据，触发ticker后直接发送给processor模块处理
 		defer ticker.Stop()
 		for {
 			select {
 			case data := <-c.dataChan:
-				batch = append(batch, data)
-				if len(batch) >= c.batchSize {
-					c.sendBatchToProcessor(batch)
-					batch = make([]models.SensorData, 0, c.batchSize)
+				BigBatch = append(BigBatch, data)
+				if len(BigBatch) >= c.BigBatchSize {
+					c.sendBatchToProcessor(BigBatch)
+					BigBatch = make([]models.SensorData, 0, c.BigBatchSize)
 				}
 			case <-ticker.C:
-				if len(batch) > 0 {
-					c.sendBatchToProcessor(batch)
-					batch = make([]models.SensorData, 0, c.batchSize)
+				if len(BigBatch) > 0 {
+					c.sendBatchToProcessor(BigBatch)
+					BigBatch = make([]models.SensorData, 0, c.BigBatchSize)
 				}
 			case <-c.stopChan:
-				if len(batch) > 0 {
-					c.sendBatchToProcessor(batch)
-					batch = make([]models.SensorData, 0, c.batchSize)
+				if len(BigBatch) > 0 {
+					c.sendBatchToProcessor(BigBatch)
+					BigBatch = make([]models.SensorData, 0, c.BigBatchSize)
 				}
 				return
 			}
@@ -78,8 +84,8 @@ func (c *Collector) StartCollecting() {
 	log.Println("Collector started with batch processing")
 }
 
-func (c *Collector) sendBatchToProcessor(batch []models.SensorData) {
-	c.processedChan <- batch
+func (c *Collector) sendBatchToProcessor(BigBatch []models.SensorData) {
+	c.processedChan <- BigBatch
 }
 
 // GetProcessedChannel 返回用于处理数据的channel

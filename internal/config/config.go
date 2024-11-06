@@ -24,7 +24,9 @@ type MQTTConfig struct {
 }
 
 type DeviceConfig struct {
+	DeviceNumber int `json:"device_number"` // 设备数量
 	ScanInterval int `json:"scan_interval"` // 设备扫描间隔（秒）
+	ProcessInterval int `json:"process_interval"` // 数据处理间隔（秒）
 }
 
 type BlockchainConfig struct {

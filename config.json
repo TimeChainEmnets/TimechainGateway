@@ -7,7 +7,9 @@
     "device_info_topic": "sensors/data"
   },
   "device_config": {
-    "scan_interval": 15
+    "device_number": 1,
+    "scan_interval": 3,
+    "process_interval": 600
   },
   "blockchain_config": {
     "node_url": "http://localhost:26657",

@@ -113,21 +113,23 @@ func NewGateway(cfg *config.Config, collector *data.Collector, processor *data.P
 }
 
 func (g *Gateway) Start() {
-    // 启动collector
-    g.dataCollector.StartCollecting()
+	// 启动collector
+	g.dataCollector.StartCollecting()
 
-    // 启动处理循环
-    go func() {
-        processChan := g.dataCollector.GetProcessedChannel()
-        for batch := range processChan {
-            // 处理数据
-			processedData := g.dataProcessor.ProcessBatch(batch)
-            // 发送到区块链
-            if err := g.blockchainClient.SendData(processedData); err != nil {
-                log.Printf("Error sending data to blockchain: %v", err)
-            }
-        }
-    }()
+	// 启动处理循环
+	go func() {
+		processChan := g.dataCollector.GetProcessedChannel()
+		batchNum := g.dataCollector.BigBatchSize / g.dataCollector.BatchSize
+		for bigBatch := range processChan {
+			// 处理数据
+			processedData := g.dataProcessor.ProcessBatch(bigBatch)
+			// 访问区块链RPC节点调用合约，交易上链
+			// 将数据发送到存储节点
+			if err := g.blockchainClient.SendData(processedData, batchNum); err != nil {
+				log.Printf("Error sending data to blockchain: %v", err)
+			}
+		}
+	}()
 }
 
 func (g *Gateway) Stop() {
