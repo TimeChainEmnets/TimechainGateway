@@ -8,14 +8,15 @@
   },
   "device_config": {
     "device_number": 1,
-    "scan_interval": 3,
-    "process_interval": 600
+    "scan_interval": 16,
+    "process_interval": 512
   },
   "blockchain_config": {
-    "node_url": "http://localhost:26657",
-    "chain_id": "timechain",
-    "gas_limit": 100000,
-    "contract_address": "0x1234567890123456789012345678901234567890"
+    "node_url": "https://sepolia.infura.io/v3/b5e6f67f813a41f983b6c9f3f5bba595",
+    "chain_id": 11155111,
+    "gas_limit": 3000000,
+    "contract_address": "",
+    "private_key": "9b55a066922e55fba996585f825498f246180d4392eb4c79c3a0b7d82f762fff"
   },
   "storage_config": {
     "storage_dir": "./data"

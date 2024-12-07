@@ -11,13 +11,13 @@ import (
 )
 
 type Collector struct {
-	config          *config.Config
-	dataChan        chan models.SensorData
-	processedChan   chan []models.SensorData // 新增：用于发送给processor的channel
-	BatchSize       int
-	BigBatchSize    int
-	processInterval time.Duration
-	mutex           sync.RWMutex
+	config          *config.Config							// 设备配置
+	dataChan        chan models.SensorData	// device => collector 接收MQTT数据
+	processedChan   chan []models.SensorData // collector => processor 发送处理后的数据
+	BatchSize       int	// 通过mqtt发送的单个数据包的数据量
+	BigBatchSize    int	// 每次对进行graph更新的数据量
+	processInterval time.Duration	// 更新Graph的时间间隔
+	// mutex           sync.RWMutex	// 用于保护graph的读写操作
 	stopChan        chan struct{}
 }
 
@@ -26,7 +26,7 @@ func NewCollector(cfg *config.Config) *Collector {
 		config:          cfg,
 		dataChan:        make(chan models.SensorData, cfg.DeviceConfig.ProcessInterval/cfg.DeviceConfig.ScanInterval),
 		processedChan:   make(chan []models.SensorData, 10),
-		BatchSize:       20,
+		BatchSize:       8,
 		BigBatchSize:    cfg.DeviceConfig.DeviceNumber * cfg.DeviceConfig.ProcessInterval / cfg.DeviceConfig.ScanInterval,
 		processInterval: time.Second * time.Duration(cfg.DeviceConfig.ProcessInterval),
 		stopChan:        make(chan struct{}),
@@ -50,11 +50,10 @@ func (c *Collector) HandleMQTTMessage(topic string, payload []byte) error {
 	}
 }
 
-// StartCollecting 开始收集数据
+// StartCollecting 开始通过mqtt协议接收device传来的数据
 func (c *Collector) StartCollecting() {
 	go func() {
 		// 收集满 batch size个数据后，发送给processBatch处理
-		// batch size 暂定20个
 		BigBatch := make([]models.SensorData, 0, c.BigBatchSize)
 		ticker := time.NewTicker(c.processInterval)
 		// 若未填满数据，触发ticker后直接发送给processor模块处理

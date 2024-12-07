@@ -1,8 +1,6 @@
 package models
 
 import (
-	"math/rand"
-	"time"
 )
 
 type Device struct {

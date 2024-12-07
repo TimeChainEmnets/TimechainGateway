@@ -31,9 +31,10 @@ type DeviceConfig struct {
 
 type BlockchainConfig struct {
 	NodeURL         string `json:"node_url"`
-	ChainID         string `json:"chain_id"`
+	ChainID         int64 `json:"chain_id"`
 	GasLimit        uint64 `json:"gas_limit"`
 	ContractAddress string `json:"contract_address"`
+	PrivateKey			string `json:"private_key"`
 }
 
 type StorageConfig struct {

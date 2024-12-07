@@ -58,7 +58,7 @@ func main() {
 		}
 	}()
 
-	dataCollector := data.NewCollector()
+	dataCollector := data.NewCollector(cfg)
 	dataProcessor := data.NewProcessor(cfg)
 	blockchainClient := blockchain.NewClient(cfg)
 
@@ -120,11 +120,12 @@ func (g *Gateway) Start() {
 	go func() {
 		processChan := g.dataCollector.GetProcessedChannel()
 		batchNum := g.dataCollector.BigBatchSize / g.dataCollector.BatchSize
+
 		for bigBatch := range processChan {
-			// 处理数据
+			// 现在接收到的bigBatch是 单次更新graph时间间隔内所有设备上传过来的数据
+			// 现在需要dataProcessor进行处理
 			processedData := g.dataProcessor.ProcessBatch(bigBatch)
-			// 访问区块链RPC节点调用合约，交易上链
-			// 将数据发送到存储节点
+			// 访问区块链RPC节点调用合约，交易上链，并将数据发送到存储节点
 			if err := g.blockchainClient.SendData(processedData, batchNum); err != nil {
 				log.Printf("Error sending data to blockchain: %v", err)
 			}
