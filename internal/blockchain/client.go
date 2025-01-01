@@ -17,12 +17,6 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
-// Contract ABI 常量，需要根据你的智能合约生成
-const ContractABI = `[{"inputs":[{"components":[...],"name":"data","type":"tuple[][]"}],"name":"sendData","outputs":[],"stateMutability":"nonpayable","type":"function"}]`
-
-// 合约地址常量
-// const ContractAddress = "0x742d35Cc6634C0532925a3b844Bc454e4438f44e" // 替换为你的合约地址
-
 type Client struct {
 	config     *config.Config
 	eth        *ethclient.Client

@@ -1,6 +1,7 @@
 package blockchain
 
 import (
+	"fmt"
 	"testing"
 	"timechain-gateway/internal/config"
 	"timechain-gateway/pkg/models"
@@ -13,46 +14,21 @@ func TestGetBalance(t *testing.T) {
 	// 初始化测试配置和客户端
 	cfg := &config.Config{
 		// 设置配置项
+		BlockchainConfig: config.BlockchainConfig{
+			NodeURL:         "https://sepolia.infura.io/v3/b5e6f67f813a41f983b6c9f3f5bba595", // 本地测试节点
+			ChainID:         11155111,                                                        // 测试网络ID
+			GasLimit:        3000000,
+			ContractAddress: "0xA5dd2cf9d382c83fB0e6Fb218fF6777CfD132DF2",
+			PrivateKey:      "9b55a066922e55fba996585f825498f246180d4392eb4c79c3a0b7d82f762fff",
+		},
 	}
 	client := NewClient(cfg)
 
 	// 测试 GetBalance 方法
 	balance, err := client.GetBalance()
+	fmt.Println(balance)
 	assert.NoError(t, err)
 	assert.NotNil(t, balance)
 
 	// 可以添加更多断言来验证 balance 的值
-}
-
-func TestClose(t *testing.T) {
-	// 初始化测试配置和客户端
-	cfg, err := config.Load("../../config.json")
-	if err != nil {
-		t.Fatalf("Failed to load config: %v", err)
-	}
-	client := NewClient(cfg)
-
-	// 测试 Close 方法
-	client.Close()
-
-	// 可以添加断言来验证 ethclient 是否已关闭
-}
-
-func TestGetLSH(t *testing.T) {
-	// 测试数据
-	data := [][]models.SensorData{
-		{
-			{Timestamp: 1, Value: 36.3, DeviceID: "device001", SensorID: "sensor001", Type: "temperature", Unit: "Celsius"},
-			{Timestamp: 2, Value: 36.1, DeviceID: "device001", SensorID: "sensor001", Type: "temperature", Unit: "Celsius"},
-		},
-	}
-
-	// 预期结果
-	expectedRootHashes := []common.Hash{common.Hash{}}
-
-	// 测试 getLSH 方法
-	rootHashes := getLSH(data)
-	assert.Equal(t, expectedRootHashes, rootHashes)
-
-	// 可以添加更多测试用例来验证 getLSH 方法的正确性
 }

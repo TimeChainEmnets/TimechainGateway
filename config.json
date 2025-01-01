@@ -15,7 +15,7 @@
     "node_url": "https://sepolia.infura.io/v3/b5e6f67f813a41f983b6c9f3f5bba595",
     "chain_id": 11155111,
     "gas_limit": 3000000,
-    "contract_address": "",
+    "contract_address": "0xA5dd2cf9d382c83fB0e6Fb218fF6777CfD132DF2",
     "private_key": "9b55a066922e55fba996585f825498f246180d4392eb4c79c3a0b7d82f762fff"
   },
   "storage_config": {
