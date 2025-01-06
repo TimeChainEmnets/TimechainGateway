@@ -7,8 +7,8 @@ import (
 	"log"
 	"math/big"
 	"strings"
-	"timechain-gateway/internal/config"
-	"timechain-gateway/pkg/models"
+	"github.com/TimeChainEmnets/TimechainGateway/internal/config"
+	"github.com/TimeChainEmnets/TimechainGateway/pkg/models"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"

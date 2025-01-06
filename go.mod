@@ -1,10 +1,10 @@
-module timechain-gateway
+module github.com/TimeChainEmnets/TimechainGateway
 
-go 1.22
+go 1.23.1
 
 require (
 	github.com/ethereum/go-ethereum v1.14.12
-	github.com/mochi-mqtt/server/v2 v2.6.5
+	github.com/mochi-mqtt/server/v2 v2.6.6
 	github.com/stretchr/testify v1.9.0
 	gonum.org/v1/gonum v0.15.1
 )
@@ -25,7 +25,7 @@ require (
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
 	github.com/google/uuid v1.3.0 // indirect
-	github.com/gorilla/websocket v1.5.3 // indirect
+	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/holiman/uint256 v1.3.1 // indirect
 	github.com/mmcloughlin/addchain v0.4.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect

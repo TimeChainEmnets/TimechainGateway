@@ -8,8 +8,8 @@ import (
 	"sort"
 	"sync"
 	"time"
-	"timechain-gateway/internal/config"
-	"timechain-gateway/pkg/models"
+	"github.com/TimeChainEmnets/TimechainGateway/internal/config"
+	"github.com/TimeChainEmnets/TimechainGateway/pkg/models"
 
 	"gonum.org/v1/gonum/graph/simple"
 	"gonum.org/v1/gonum/mat"

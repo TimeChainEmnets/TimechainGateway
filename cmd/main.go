@@ -7,9 +7,10 @@ import (
 	"os/signal"
 	"sync"
 	"syscall"
-	"timechain-gateway/internal/blockchain"
-	"timechain-gateway/internal/config"
-	"timechain-gateway/internal/data"
+
+	"github.com/TimeChainEmnets/TimechainGateway/internal/blockchain"
+	"github.com/TimeChainEmnets/TimechainGateway/internal/config"
+	"github.com/TimeChainEmnets/TimechainGateway/internal/data"
 
 	mqtt "github.com/mochi-mqtt/server/v2"
 	"github.com/mochi-mqtt/server/v2/hooks/auth"

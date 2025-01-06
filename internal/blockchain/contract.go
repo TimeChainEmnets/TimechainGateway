@@ -1,6 +1,5 @@
 package blockchain
 
-
 // Contract ABI 常量，需要根据你的智能合约生成
 const ContractABI = `[
     {

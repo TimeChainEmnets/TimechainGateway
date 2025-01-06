@@ -3,10 +3,8 @@ package blockchain
 import (
 	"fmt"
 	"testing"
-	"timechain-gateway/internal/config"
-	"timechain-gateway/pkg/models"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/TimeChainEmnets/TimechainGateway/internal/config"
 	"github.com/stretchr/testify/assert"
 )
 

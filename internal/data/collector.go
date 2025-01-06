@@ -4,21 +4,21 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"sync"
 	"time"
-	"timechain-gateway/internal/config"
-	"timechain-gateway/pkg/models"
+
+	"github.com/TimeChainEmnets/TimechainGateway/internal/config"
+	"github.com/TimeChainEmnets/TimechainGateway/pkg/models"
 )
 
 type Collector struct {
-	config          *config.Config							// 设备配置
-	dataChan        chan models.SensorData	// device => collector 接收MQTT数据
+	config          *config.Config           // 设备配置
+	dataChan        chan models.SensorData   // device => collector 接收MQTT数据
 	processedChan   chan []models.SensorData // collector => processor 发送处理后的数据
-	BatchSize       int	// 通过mqtt发送的单个数据包的数据量
-	BigBatchSize    int	// 每次对进行graph更新的数据量
-	processInterval time.Duration	// 更新Graph的时间间隔
+	BatchSize       int                      // 通过mqtt发送的单个数据包的数据量
+	BigBatchSize    int                      // 每次对进行graph更新的数据量
+	processInterval time.Duration            // 更新Graph的时间间隔
 	// mutex           sync.RWMutex	// 用于保护graph的读写操作
-	stopChan        chan struct{}
+	stopChan chan struct{}
 }
 
 func NewCollector(cfg *config.Config) *Collector {
